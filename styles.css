@@ -1,0 +1,183 @@
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f0f8ff;
+    padding: 20px;
+    line-height: 1.6;
+}
+
+#simulation-container {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+#cpu, #ram {
+    background-color: #fff;
+    border: 3px solid #4a90e2;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-top: 0;
+    color: #2c3e50;
+    text-align: center;
+}
+
+#cycle-stages {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    justify-content: center;
+}
+
+.stage {
+    padding: 10px 20px;
+    border: 2px solid #3498db;
+    border-radius: 20px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.stage.active {
+    background-color: #3498db;
+    color: white;
+    transform: scale(1.05);
+}
+
+#program-counter, #instruction-register, #accumulator {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 2px solid #2ecc71;
+    border-radius: 10px;
+}
+
+.register-name {
+    font-weight: bold;
+    color: #27ae60;
+}
+
+.register-value {
+    background-color: #ecf0f1;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 1.1em;
+}
+
+table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+}
+
+th, td {
+    border: 1px solid #bdc3c7;
+    padding: 10px;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+th {
+    background-color: #3498db;
+    color: white;
+}
+
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+#explanation {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #fff;
+    border: 2px solid #9b59b6;
+    border-radius: 10px;
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+    font-style: italic;
+    color: #8e44ad;
+}
+
+#controls {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.highlight {
+    animation: pulse 1s infinite;
+}
+
+#timeline {
+    width: 100%;
+    height: 10px;
+    background-color: #ecf0f1;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#progress {
+    width: 0;
+    height: 100%;
+    background-color: #2ecc71;
+    transition: width 0.3s ease;
+}
+
+.editable {
+    background-color: #f9e79f;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #bdc3c7;
+    border-radius: 3px;
+}
+
+#svg-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.arrow {
+    fill: none;
+    stroke: #3498db;
+    stroke-width: 2;
+    marker-end: url(#arrowhead);
+}
+
+#arrowhead {
+    fill: #3498db;
+}
