@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced CPU Fetch-Execute Cycle Simulation</title>
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f8ff;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        #simulation-container {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #cpu, #ram {
+            background-color: #fff;
+            border: 3px solid #4a90e2;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        #cycle-stages {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .stage {
+            padding: 10px 20px;
+            border: 2px solid #3498db;
+            border-radius: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .stage.active {
+            background-color: #3498db;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        #program-counter, #instruction-register, #accumulator {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 2px solid #2ecc71;
+            border-radius: 10px;
+        }
+
+        .register-name {
+            font-weight: bold;
+            color: #27ae60;
+        }
+
+        .register-value {
+            background-color: #ecf0f1;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+
+        table {
+            border-collapse: separate;
+            border-spacing: 0;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #bdc3c7;
+            padding: 10px;
+            text-align: left;
+            transition: all 0.3s ease;
+        }
+
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #explanation {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #fff;
+            border: 2px solid #9b59b6;
+            border-radius: 10px;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            font-style: italic;
+            color: #8e44ad;
+        }
+
+        #controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .data-flow {
+            position: absolute;
+            background-color: #e74c3c;
+            transition: all 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .highlight {
+            animation: pulse 1s infinite;
+        }
+
+        #timeline {
+            width: 100%;
+            height: 10px;
+            background-color: #ecf0f1;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        #progress {
+            width: 0;
+            height: 100%;
+            background-color: #2ecc71;
+            transition: width 0.3s ease;
+        }
+
+        .editable {
+            background-color: #f9e79f;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CPU Fetch-Execute Cycle Simulation</h1>
+    <div id="timeline"><div id="progress"></div></div>
+    <div id="simulation-container">
+        <div id="cpu">
+            <h2>CPU</h2>
+            <div id="cycle-stages">
+                <div class="stage">Fetch</div>
+                <div class="stage">Decode</div>
+                <div class="stage">Execute</div>
+            </div>
+            <div id="program-counter">
+                <span class="register-name">Program Counter:</span>
+                <span class="register-value">0</span>
+            </div>
+            <div id="instruction-register">
+                <span class="register-name">Instruction Register:</span>
+                <span class="register-value"></span>
+            </div>
+            <div id="accumulator">
+                <span class="register-name">Accumulator:</span>
+                <span class="register-value">0</span>
+            </div>
+        </div>
+        <div id="ram">
+            <h2>RAM</h2>
+            <table>
+                <tr>
+                    <th>Address</th>
+                    <th>Value</th>
+                </tr>
+                <tr><td>0</td><td><input type="text" value="LOAD 6"></td></tr>
+                <tr><td>1</td><td><input type="text" value="ADD 7"></td></tr>
+                <tr><td>2</td><td><input type="text" value="STORE 6"></td></tr>
+                <tr><td>3</td><td><input type="text" value="JUMP 0"></td></tr>
+                <tr><td>4</td><td><input type="text" value="0"></td></tr>
+                <tr><td>5</td><td><input type="text" value="0"></td></tr>
+                <tr><td>6</td><td><input type="text" value="1"></td></tr>
+                <tr><td>7</td><td><input type="text" value="1"></td></tr>
+            </table>
+        </div>
+    </div>
+    <div id="explanation"></div>
+    <div id="controls">
+        <button id="next-btn">Next Step</button>
+        <button id="reset-btn">Reset</button>
+    </div>
+
+    <audio id="fetch-sound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+    <audio id="decode-sound" src="https://assets.mixkit.co/active_storage/sfx/2569/2569-preview.mp3"></audio>
+    <audio id="execute-sound" src="https://assets.mixkit.co/active_storage/sfx/2570/2570-preview.mp3"></audio>
+
+    <script>
+        const programCounter = document.querySelector('#program-counter .register-value');
+        const instructionRegister = document.querySelector('#instruction-register .register-value');
+        const accumulator = document.querySelector('#accumulator .register-value');
+        const stages = document.querySelectorAll('.stage');
+        const ramCells = document.querySelectorAll('#ram table tr:not(:first-child)');
+        const explanation = document.getElementById('explanation');
+        const nextBtn = document.getElementById('next-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const simulationContainer = document.getElementById('simulation-container');
+        const progressBar = document.getElementById('progress');
+
+        const fetchSound = document.getElementById('fetch-sound');
+        const decodeSound = document.getElementById('decode-sound');
+        const executeSound = document.getElementById('execute-sound');
+
+        let currentStage = 0;
+        let currentAddress = 0;
+
+        function updateActiveStage() {
+            stages.forEach((stage, index) => {
+                stage.classList.toggle('active', index === currentStage);
+            });
+            progressBar.style.width = `${((currentStage + 1) / 3) * 100}%`;
+        }
+
+        function createDataFlow(from, to, color = '#e74c3c') {
+            const fromRect = from.getBoundingClientRect();
+            const toRect = to.getBoundingClientRect();
+            const containerRect = simulationContainer.getBoundingClientRect();
+
+            const startX = fromRect.left + fromRect.width / 2 - containerRect.left;
+            const startY = fromRect.top + fromRect.height / 2 - containerRect.top;
+            const endX = toRect.left + toRect.width / 2 - containerRect.left;
+            const endY = toRect.top + toRect.height / 2 - containerRect.top;
+
+            const distance = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+            const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+
+            const dataFlow = document.createElement('div');
+            dataFlow.className = 'data-flow';
+            dataFlow.style.width = `${distance}px`;
+            dataFlow.style.left = `${startX}px`;
+            dataFlow.style.top = `${startY}px`;
+            dataFlow.style.backgroundColor = color;
+            dataFlow.style.transform = `rotate(${angle}deg) scaleX(0)`;
+
+            simulationContainer.appendChild(dataFlow);
+
+            setTimeout(() => {
+                dataFlow.style.transition = 'transform 0.5s ease';
+                dataFlow.style.transform = `rotate(${angle}deg) scaleX(1)`;
+            }, 50);
+
+            setTimeout(() => {
+                dataFlow.remove();
+            }, 1000);
+        }
+
+        function highlightElement(element) {
+            element.classList.add('highlight');
+            setTimeout(() => {
+                element.classList.remove('highlight');
+            }, 1000);
+        }
+
+        function fetchInstruction() {
+            fetchSound.play();
+            const instruction = ramCells[currentAddress].querySelector('input').value;
+            instructionRegister.textContent = instruction;
+            programCounter.textContent = currentAddress;
+
+            highlightElement(ramCells[currentAddress]);
+            createDataFlow(ramCells[currentAddress], instructionRegister.parentElement);
+
+            explanation.textContent = `Fetch: CPU retrieves the instruction at address ${currentAddress}: "${instruction}"`;
+        }
+
+        function decodeInstruction() {
+            decodeSound.play();
+            const instruction = instructionRegister.textContent;
+            highlightElement(instructionRegister.parentElement);
+            explanation.textContent = `Decode: CPU interprets the instruction: "${instruction}"`;
+        }
+
+        function executeInstruction() {
+            executeSound.play();
+            const [operation, value] = instructionRegister.textContent.split(' ');
+            const targetCell = ramCells[parseInt(value)].querySelector('input');
+
+            switch (operation) {
+                case 'LOAD':
+                    accumulator.textContent = targetCell.value;
+                    createDataFlow(targetCell, accumulator.parentElement, '#2ecc71');
+                    explanation.textContent = `Execute: Load value ${targetCell.value} from address ${value} into the accumulator`;
+                    break;
+                case 'ADD':
+                    accumulator.textContent = parseInt(accumulator.textContent) + parseInt(targetCell.value);
+                    createDataFlow(targetCell, accumulator.parentElement, '#f39c12');
+                    explanation.textContent = `Execute: Add ${targetCell.value} from address ${value} to the accumulator`;
+                    break;
+                case 'STORE':
+                    targetCell.value = accumulator.textContent;
+                    createDataFlow(accumulator.parentElement, targetCell, '#3498db');
+                    explanation.textContent = `Execute: Store accumulator value ${accumulator.textContent} to address ${value}`;
+                    break;
+                case 'JUMP':
+                    currentAddress = parseInt(value) - 1; // -1 because we increment later
+                    createDataFlow(instructionRegister.parentElement, programCounter.parentElement, '#9b59b6');
+                    explanation.textContent = `Execute: Jump to address ${value}`;
+                    break;
+            }
+            highlightElement(accumulator.parentElement);
+        }
+
+        function nextStep() {
+            switch (currentStage) {
+                case 0:
+                    fetchInstruction();
+                    break;
+                case 1:
+                    decodeInstruction();
+                    break;
+                case 2:
+                    executeInstruction();
+                    currentAddress++;
+                    if (currentAddress >= ramCells.length) currentAddress = 0;
+                    break;
+            }
+            currentStage = (currentStage + 1) % 3;
+            updateActiveStage();
+        }
+
+        function reset() {
+            currentStage = 0;
+            currentAddress = 0;
+            programCounter.textContent = '0';
+            instructionRegister.textContent = '';
+            accumulator.textContent = '0';
+            ramCells.forEach((row, index) => {
+                if (index > 5) row.querySelector('input').value = '1';
+            });
+            explanation.textContent = 'Simulation reset. Click "Next Step" to begin.';
+            updateActiveStage();
+        }
+
+        nextBtn.addEventListener('click', nextStep);
+        resetBtn.addEventListener('click', reset);
+
+       
+        tippy('#program-counter', { content: 'Stores the address of the next instruction to be executed' });
+        tippy('#instruction-register', { content: 'Holds the current instruction being processed' });
+        tippy('#accumulator', { content: 'Temporary storage for arithmetic and logical operations' });
+        tippy('.stage', { content: 'Current stage of the fetch-execute cycle' });
+
+        ramCells.forEach((cell, index) => {
+            tippy(cell, { content: `RAM address ${index}` });
+        });
+
+        reset(); 
+    </script>
+</body>
+</html>
